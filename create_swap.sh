@@ -9,58 +9,34 @@
 #  8""88888P'  o888o        o88o     o8888o o888o  o888o o888o  o888o    o888o  o88888o  `Y8bood8P'  
 ######################################################################################################                                                                                                 
                                                                                                   
-swap_dir="/swap"
-swap_name="swapfile"
+swap_dir="/swapfile"
 
-if [ "$EUID" -ne 0 ]
-then
-	echo "not root"
-	exit 1
-fi
+sudo dd if=/dev/zero of=$swap_dir bs=1024 count=6291456
+sudo chmod 600 $swap_dir
+sudo mkswap $swap_dir
+sudo swapon $swap_dir
+echo "$swap_dir none swap sw 0 0" | sudo tee -a /etc/fstab
+echo "vm.swappiness=10" | sudo tee -a /etc/sysctl.conf
+echo "vm.vfs_cache_pressure=80" | sudo tee -a /etc/sysctl.conf
+echo "vm.dirty_ratio=10" | sudo tee -a /etc/sysctl.conf
+echo "vm.dirty_background_ratio=5" | sudo tee -a /etc/sysctl.conf
+echo "vm.dirty_background_ratio=5" | sudo tee -a /etc/sysctl.conf
+echo "vm.dirty_background_ratio=5" | sudo tee -a /etc/sysctl.conf
+echo "vm.dirty_background_ratio=5" | sudo tee -a /etc/sysctl.conf
+echo "vm.dirty_background_ratio=5" | sudo tee -a /etc/sysctl.conf
 
-fallocate_status=$(which fallocate >/dev/null 2>&1)
+echo "net.ipv4.conf.default.log_martians=1" | sudo tee -a /etc/sysctl.conf
+echo "net.ipv4.conf.default.accept_source_route=0" | sudo tee -a /etc/sysctl.conf
+echo "net.ipv4.conf.all.send_redirects=0" | sudo tee -a /etc/sysctl.conf
+echo "net.ipv4.conf.all.log_martians=1" | sudo tee -a /etc/sysctl.conf
+echo "kernel.sysrq=0" | sudo tee -a /etc/sysctl.conf
+echo "kernel.kptr_restrict=2" | sudo tee -a /etc/sysctl.conf
+echo "kernel.dmesg_restrict=1" | sudo tee -a /etc/sysctl.conf
+echo "kernel.core_uses_pid=1" | sudo tee -a /etc/sysctl.conf
+echo "fs.suid_dumpable=0" | sudo tee -a /etc/sysctl.conf
+echo "net.ipv6.conf.default.accept_redirects=0" | sudo tee -a /etc/sysctl.conf
+echo "net.ipv6.conf.all.accept_redirects=0" | sudo tee -a /etc/sysctl.conf
+echo "net.ipv4.conf.default.accept_redirects=0" | sudo tee -a /etc/sysctl.conf
+echo "net.ipv4.conf.all.accept_redirects=0" | sudo tee -a /etc/sysctl.conf
 
-if [ "$?" -ne 0 ]
-then
-	echo "Please install fallocate"
-	exit 1
-fi
-
-read -p "Enter size of swap file(Ex: 2GB): " swap_size
-read -p "Can I create a swapfile located in /swap, (y)es/(n)o: " choice
-
-
-if [ "$choice" != "y" ]
-then
-	read -p "Enter directory to store swap(Ex: /mnt): " swap_dir
-fi
-
-fallocate --length $swap_size $swap_dir/$swap_name
-
-chmod 600 $swap_dir/$swap_name
-
-mkswap $swap_dir/$swap_name
-
-read -p "Ready to enable swap (y/n): " choice
-
-if [ "$choice" == "y" ]
-then
-	swapon $swap_dir/$swap_name
-else
-	exit 0 
-fi
-
-read -p "Enable Swap At Boot(y/n): " choice
-
-if [ "$choice" == "y" ]
-then
-	echo "$swap_dir/$swap_name swap swap defaults 0 0" >> /etc/fstab
-	exit 0
-else
-	exit 0
-fi
-
-sysctl vm.swappiness=10
-
-echo "vm.swappiness=10" >> /etc/sysctl.conf
-echo "vm.vfs_cache_pressure=50" >> /etc/sysctl.conf
+swapon --show
